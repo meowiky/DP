@@ -48,6 +48,16 @@ class RobotState:
     message: str | None = None
 
 
+@dataclass
+class ToolState:
+    active_tool: int | None
+    active_tcp_offset: list[float] | None
+    current_tool_coord: list[float] | None
+    tool_0_coord: list[float] | None
+    tool_1_coord: list[float] | None
+    message: str | None = None
+
+
 class FairinoClient:
     def __init__(self, robot_ip: str) -> None:
         self.robot_ip = robot_ip
@@ -160,6 +170,39 @@ class FairinoClient:
                 )
                 else None
             ),
+        )
+
+    def get_tool_state(self) -> ToolState:
+        if self._robot is None:
+            raise RuntimeError("Robot is not connected.")
+
+        active_tool_error, active_tool = self._unpack_sdk_state(self._robot.GetActualTCPNum())
+        tcp_offset_error, tcp_offset = self._unpack_sdk_state(self._robot.GetTCPOffset())
+        current_tool_error, current_tool_coord = self._unpack_sdk_state(self._robot.GetCurToolCoord())
+        tool_0_error, tool_0_coord = self._unpack_sdk_state(self._robot.GetToolCoordWithID(0))
+        tool_1_error, tool_1_coord = self._unpack_sdk_state(self._robot.GetToolCoordWithID(1))
+
+        errors = (
+            active_tool_error,
+            tcp_offset_error,
+            current_tool_error,
+            tool_0_error,
+            tool_1_error,
+        )
+        message = None
+        if any(code != 0 for code in errors):
+            message = (
+                "Some tool coordinate fields could not be read. "
+                f"error_codes={list(errors)}"
+            )
+
+        return ToolState(
+            active_tool=int(active_tool) if active_tool is not None else None,
+            active_tcp_offset=[float(value) for value in tcp_offset] if tcp_offset is not None else None,
+            current_tool_coord=[float(value) for value in current_tool_coord] if current_tool_coord is not None else None,
+            tool_0_coord=[float(value) for value in tool_0_coord] if tool_0_coord is not None else None,
+            tool_1_coord=[float(value) for value in tool_1_coord] if tool_1_coord is not None else None,
+            message=message,
         )
 
     def move_cartesian(

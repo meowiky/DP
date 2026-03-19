@@ -1,6 +1,11 @@
 from robot_api.config import settings
 from robot_api.fairino_client import FairinoClient
-from robot_api.models import CartesianMoveRequest, MoveResponse, RobotStateResponse
+from robot_api.models import (
+    CartesianMoveRequest,
+    MoveResponse,
+    RobotStateResponse,
+    ToolStateResponse,
+)
 
 
 def move_cartesian(request: CartesianMoveRequest) -> MoveResponse:
@@ -66,4 +71,19 @@ def get_robot_state() -> RobotStateResponse:
         tcp_pose=state.tcp_pose or None,
         joint_pos=state.joint_pos or None,
         message=state.message,
+    )
+
+
+def get_tool_state() -> ToolStateResponse:
+    with FairinoClient(settings.fairino_robot_ip) as client:
+        tool_state = client.get_tool_state()
+
+    return ToolStateResponse(
+        robot_ip=settings.fairino_robot_ip,
+        active_tool=tool_state.active_tool,
+        active_tcp_offset=tool_state.active_tcp_offset,
+        current_tool_coord=tool_state.current_tool_coord,
+        tool_0_coord=tool_state.tool_0_coord,
+        tool_1_coord=tool_state.tool_1_coord,
+        message=tool_state.message,
     )

@@ -52,3 +52,13 @@ class RobotStateResponse(BaseModel):
     tcp_pose: list[float] | None = None
     joint_pos: list[float] | None = None
     message: str | None = None
+
+
+class ToolStateResponse(BaseModel):
+    robot_ip: str
+    active_tool: int | None = None
+    active_tcp_offset: list[float] | None = None
+    current_tool_coord: list[float] | None = None
+    tool_0_coord: list[float] | None = None
+    tool_1_coord: list[float] | None = None
+    message: str | None = None
