@@ -5,10 +5,16 @@ from robot_api.fairino_client import FairinoCommandError, FairinoSDKUnavailableE
 from robot_api.models import (
     CartesianMoveRequest,
     MoveResponse,
+    PartialCartesianMoveRequest,
     RobotStateResponse,
     ToolStateResponse,
 )
-from robot_api.service import get_robot_state, get_tool_state, move_cartesian
+from robot_api.service import (
+    get_robot_state,
+    get_tool_state,
+    move_cartesian,
+    move_cartesian_partial,
+)
 
 app = FastAPI(
     title="FAIRINO Robot API",
@@ -34,6 +40,20 @@ def move_cartesian_endpoint(request: CartesianMoveRequest) -> MoveResponse:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
     except ConnectionError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except FairinoCommandError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/move/cartesian/partial", response_model=MoveResponse)
+def move_cartesian_partial_endpoint(request: PartialCartesianMoveRequest) -> MoveResponse:
+    try:
+        return move_cartesian_partial(request)
+    except FairinoSDKUnavailableError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    except ConnectionError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except FairinoCommandError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 

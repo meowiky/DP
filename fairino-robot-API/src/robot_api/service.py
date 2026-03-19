@@ -3,6 +3,7 @@ from robot_api.fairino_client import FairinoClient
 from robot_api.models import (
     CartesianMoveRequest,
     MoveResponse,
+    PartialCartesianMoveRequest,
     RobotStateResponse,
     ToolStateResponse,
 )
@@ -71,6 +72,65 @@ def get_robot_state() -> RobotStateResponse:
         tcp_pose=state.tcp_pose or None,
         joint_pos=state.joint_pos or None,
         message=state.message,
+    )
+
+
+def move_cartesian_partial(request: PartialCartesianMoveRequest) -> MoveResponse:
+    with FairinoClient(settings.fairino_robot_ip) as client:
+        state = client.get_state()
+        if not state.realtime_available or not state.tcp_pose:
+            raise RuntimeError(
+                "Realtime TCP pose is unavailable, so omitted Cartesian fields cannot be filled."
+            )
+
+        desc_pos = [
+            state.tcp_pose[0] if request.x is None else request.x,
+            state.tcp_pose[1] if request.y is None else request.y,
+            state.tcp_pose[2] if request.z is None else request.z,
+            state.tcp_pose[3] if request.rx is None else request.rx,
+            state.tcp_pose[4] if request.ry is None else request.ry,
+            state.tcp_pose[5] if request.rz is None else request.rz,
+        ]
+        tool = state.tool if request.tool is None and state.tool >= 0 else request.tool
+        user = state.user if request.user is None and state.user >= 0 else request.user
+        vel = settings.fairino_default_vel if request.vel is None else request.vel
+
+        if tool is None:
+            tool = settings.fairino_tool
+        if user is None:
+            user = settings.fairino_user
+
+        if settings.fairino_dry_run:
+            return MoveResponse(
+                success=True,
+                dry_run=True,
+                robot_ip=settings.fairino_robot_ip,
+                command="MoveCart",
+                desc_pos=desc_pos,
+                tool=tool,
+                user=user,
+                vel=vel,
+                message="Dry-run mode enabled. No motion command was sent.",
+            )
+
+        result = client.move_cartesian(
+            desc_pos=desc_pos,
+            tool=tool,
+            user=user,
+            vel=vel,
+        )
+
+    return MoveResponse(
+        success=True,
+        dry_run=False,
+        robot_ip=settings.fairino_robot_ip,
+        command="MoveCart",
+        desc_pos=result.desc_pos,
+        tool=result.tool,
+        user=result.user,
+        vel=result.vel,
+        error_code=result.error_code,
+        message="Motion command accepted by robot controller.",
     )
 
 

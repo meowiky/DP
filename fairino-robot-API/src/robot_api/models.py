@@ -21,6 +21,23 @@ class CartesianMoveRequest(BaseModel):
         return [self.x, self.y, self.z, self.rx, self.ry, self.rz]
 
 
+class PartialCartesianMoveRequest(BaseModel):
+    x: float | None = Field(None, description="Target X in mm")
+    y: float | None = Field(None, description="Target Y in mm")
+    z: float | None = Field(None, description="Target Z in mm")
+    rx: float | None = Field(None, description="Target RX in degrees")
+    ry: float | None = Field(None, description="Target RY in degrees")
+    rz: float | None = Field(None, description="Target RZ in degrees")
+    tool: int | None = Field(None, ge=0, le=14, description="Tool frame index")
+    user: int | None = Field(None, ge=0, le=14, description="Workpiece/user frame index")
+    vel: float | None = Field(None, gt=0, le=100, description="Speed percentage")
+
+    @field_validator("tool", "user")
+    @classmethod
+    def validate_frame_index(cls, value: int | None) -> int | None:
+        return value
+
+
 class MoveResponse(BaseModel):
     success: bool
     dry_run: bool
