@@ -16,6 +16,49 @@ from ctypes import *
 
 # from Cython.Compiler.Options import error_on_unknown_names
 
+
+def _load_env_port(name, default):
+    raw_value = os.getenv(name)
+    if raw_value:
+        try:
+            return int(raw_value)
+        except ValueError:
+            return default
+
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    search_dirs = [current_dir]
+    parent = current_dir
+    while True:
+        parent = os.path.dirname(parent)
+        if parent in search_dirs:
+            break
+        search_dirs.append(parent)
+
+    for directory in search_dirs:
+        env_path = os.path.join(directory, ".env")
+        if not os.path.isfile(env_path):
+            continue
+
+        try:
+            with open(env_path, "r", encoding="utf-8") as env_file:
+                for line in env_file:
+                    line = line.strip()
+                    if not line or line.startswith("#") or "=" not in line:
+                        continue
+                    key, value = line.split("=", 1)
+                    if key.strip() != name:
+                        continue
+                    value = value.strip().strip("'\"")
+                    try:
+                        return int(value)
+                    except ValueError:
+                        return default
+        except OSError:
+            continue
+
+    return default
+
+
 is_init =False
 class ROBOT_AUX_STATE(Structure):
     _pack_ = 1
@@ -231,8 +274,8 @@ class RPC():
     queue = Queue(maxsize=10000 * 1024)
     logging_thread = None
     is_conect = True
-    ROBOT_RPC_PORT = 9003
-    ROBOT_REALTIME_PORT = 9004
+    ROBOT_RPC_PORT = _load_env_port("FAIRINO_RPC_PORT", 20003)
+    ROBOT_REALTIME_PORT = _load_env_port("FAIRINO_REALTIME_PORT", 20004)
     # BUFFER_SIZE = 1024 * 2
     BUFFER_SIZE = 1024 * 1024
     thread=  threading.Thread()
