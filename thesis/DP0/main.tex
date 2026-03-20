@@ -1,0 +1,154 @@
+\documentclass[11pt,english,a4paper]{article}
+%\documentclass[11pt,slovak,a4paper]{article}
+\usepackage[IL2]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{babel}
+\usepackage{url}
+\usepackage[nottoc]{tocbibind}
+\usepackage[hidelinks,unicode]{hyperref}
+\usepackage{graphicx}
+\usepackage{lipsum}
+\usepackage{mathpazo}              %  The  Pazo  Math  fonts  family
+\usepackage{float}
+\usepackage[backend=bibtex,sorting=none,defernums=true]{biblatex}
+\addbibresource{thesis/zdroje.bib}
+
+\usepackage{etoolbox}
+        \AtBeginEnvironment{itemize}{\setlength\parskip{0pt}}
+        \AtBeginEnvironment{enumerate}{\setlength\parskip{0pt}}
+
+
+
+\begin{document}
+
+\input  title.tex
+\tableofcontents
+
+\newpage
+\headheight  14pt
+
+\section{Úvod}  \label{sec:intro}
+  
+Pri  ochoreniach,  ako  sú  amyotrofická  laterálna  skleróza  (ALS)\cite{ALS}  či  syndróm  uzamknutia  (LIS)\cite{LIS},  dochádza  k  takmer  úplnej  strate  motorických  schopností,  pričom  vo  väčšine  prípadov  zostáva  zachované  ovládanie  očí  ako  posledný  dobrovoľný  a  kontrolovateľný  pohyb.  Pohľad  sa  tak  stáva  jediným  spoľahlivým  a  zámerným  spôsobom,  ktorým  môžu  úplne  alebo  takmer  úplne  paralyzovaní  používatelia  komunikovať  či  interagovať  s  okolitým  prostredím.
+
+Strata  motoriky  však  neovplyvňuje  iba  schopnosť  komunikácie,  ale  zasahuje  aj  do  každodenných  činnosti.  Jednotlivec  s  pokročilým  štádiom  ALS  alebo  s  ťažkým  neurologickým  ochorením  postupne  stráca  možnosť  samostatne  vykonávať  aj  jednoduché  úkony,  ako  je  samotný  pohyb,  uchopenie  predmetu  alebo  otvorenie  dverí.  Na  tieto  úlohy  sa  potom  musí  spoliehať  na  pomoc  inej  osoby,  čo  vedie  k  vysokej  miere  závislosti,  strate  autonómie  a  zníženej  kvalite  života.  Využitie  pohľadu  sa  pritom  už  dnes  osvedčuje  napríklad  pri  ovládaní  elektrických  invalidných  vozíkov,  kde  umožňuje  používateľom  samostatný  pohyb  v  priestore  aj  pri  úplnej  strate  motoriky  končatín.  Na  rovnakom  princípe  nadväzujú  aj  asistenčné  robotické  technológie,  najmä  robotické  ramená,  ktoré  môžu  používateľom  vrátiť  aspoň  časť  samostatnosti  tým,  že  im  umožňujú  vykonávať  základné  úkony  bez  priamej  fyzickej  asistencie.
+
+Kľúčovou  výzvou  zostáva  spôsob  ovládania  takýchto  systémov.  Tradičné  metódy,  ako  sú  joysticky,  tlačidlá  či  hlasové  príkazy,  nie  sú  pre  mnohých  imobilných  používateľov  dostupné.  V  tejto  situácii  sa  sledovanie  pohľadu  javí  ako  prirodzená  a  efektívna  forma  interakcie,  keďže  využíva  motorickú  schopnosť,  ktorá  zostáva  najdlhšie  zachovaná.  Ovládanie  robotického  ramena  prostredníctvom  pohľadu  tak  umožňuje  používateľovi  vykonávať  manipulácie  bez  potreby  akejkoľvek  fyzickej  aktivity.
+
+\section{Prehľad  súčasného  stavu  problematiky}  \label{sec:sota}
+        \subsection{Prístupy  k  ovládaniu  asistečného  robotického  ramena  pomocou  sledovania  pohľadu  očí}
+        \include{pristupy}
+
+        \subsection{Zhrnutie}\label{sec:summary}
+Existujúce  riešenia  ovládania  asistečných  robotických  ramien  pomocou  sledovania  pohľadu  možno  rozdeliť  do  troch  hlavných  kategórií:  telemanipulačné  systémy,  systémy  založené  na  smerovom  pohľade  a  objektovo  orientované  poloautonómne  prístupy.  Telemanipulačné  riešenia  poskytujú  používateľovi  plnú  kontrolu  nad  robotom  prostredníctvom  výberu  ikon  alebo  smerových  tlačidiel,  no  vyžadujú  vysoký  počet  krokov,  presnú  fixáciu  a  spôsobujú  značnú  kognitívnu  aj  časovú  záťaž.  Smerový  pohľad  nahrádza  výber  objektu  priamo  klasifikáciou  pohybov  očí,  čo  znižuje  počet  interakčných  prvkov,  ale  zároveň  obmedzuje  presnosť  a  ponúka  len  hrubé  riadenie  pohybu.
+
+Najväčší  prínos  pre  intuitívne  asistenčné  ovládanie  prinášajú  objektovo  orientované  poloautonómne  systémy,  v  ktorých  používateľ  vyberá  cieľ  pohľadom  a  samotná  manipulácia  je  spracovaná  autonómne.  Tieto  riešenia  často  integrujú  pokročilé  techniky  počítačového  videnia,  priestorové  mapovanie  či  rozhrania  obohatenej  reality,  čo  umožňuje  presný  výber  objektov,  plánovanie  trajektórií  a  minimalizáciu  chýb  používateľa.
+                
+
+\section{Východiskové  body  výskumu}  \label{sec:objectives}
+Z vykonanej analýzy vyplýva, že najperspektívnejším smerom pre intuitívne a prakticky použiteľné ovládanie asistenčných robotických ramien je poloautonómny, objektovo orientovaný prístup, ktorý kombinuje výber cieľa pohľadom s automatickým vykonaním manipulácie. Tento typ interakcie dokáže výrazne znížiť počet potrebných krokov, zrýchliť celé ovládanie a znížiť kognitívnu záťaž používateľa. Analýza však zároveň ukázala viacero nedostatkov súčasných riešení, predovšetkým obmedzenú spoľahlivosť rozpoznania používateľského zámeru, náchylnosť na neúmyselné fixácie, nedostatočnú presnosť lokalizácie objektov v reálnych prostrediach a nejednotné postupy hodnotenia toho, kedy je poloautonómny prístup skutočne výhodnejší než manuálne ovládanie.
+
+Tieto zistenia naznačujú potrebu podrobnejšie preskúmať, ako jednotlivé formy ovládania pohľadom ovplyvňujú použiteľnosť asistenčného robotického systému, ktoré faktory bránia ich spoľahlivej prevádzke a do akej miery môžu pokročilé metódy počítačového videnia, priestorový kontext a inteligentné odvodzovanie zámeru zjednodušiť interakciu. Zároveň je potrebné overiť, či a kedy poloautonómne riešenia skutočne prinášajú používateľom výhodu oproti manuálnym metódam, ako môžu byť v praxi podporené detekciou objektov a ako ich možno ďalej rozšíriť prostredníctvom rozhraní obohatenej reality.
+
+
+\noindent
+Na základe týchto zistení, navrhujem nasledujúce výskumné otázky:
+\begin{sloppypar}
+\begin{itemize}
+        \item  Ktorý  spôsob  ovládania  robotického  ramena  prostredníctvom  pohľadu  (manuálny  alebo  poloautonómny)  poskytuje  používateľom  lepšiu  použiteľnosť  v  asistenčnom  prostredí?
+        \item  Do  akej  miery  môže  automatická  detekcia  objektov  (napríklad  kľučiek  dverí,  zdvihnuteľných  objektov,  či  ovládania  výťahu)  zlepšiť  použiteľnosť  robotického  ramena  ovládaného  pohľadom?
+        \item  Ako  možno  prispôsobiť  spôsob  ovládania  robotického  ramena  pohľadom  v  prostredí  obohatenej  reality  (AR)  s  cieľom  zvýšiť  jeho  použiteľnosť?
+        \item  Do  akej  miery  je  možné  pomocou  sledovania  pohľadu  spoľahlivo  rozpoznať  zámer  používateľa  pri  ovládaní  asistenčného  robotického  ramena?
+\end{itemize}
+\end{sloppypar}
+
+
+\section{Realizácia}  \label{sec:realization}
+        \subsection{Plán  realizácie}\label{sec:plan}
+        \begin{itemize}
+                \item  Hĺbková analýza existujúcich metód ovládania robotických ramien pohľadom, detekcie zámeru, objektovej detekcie a AR rozhraní.
+                \item Návrh architektúry systému (zber dát o pohľade, interakčný model, objektová detekcia, integrácia s ramenom, AR vizualizácie)
+                \item Implementácia prvého prototypu manuálneho ovládania pomocou pohľadu
+                \item Rozšírenie prototypu o poloautonómne funkcie a integráciu objektovej detekcie
+                \item Návrh a implementácia AR prvkov
+                \item Iteratívne testovanie, hľadanie problémov (fixácie, presnosť, odozva, UI) a postupné vylepšovanie prototypu
+                \item Návrh metodiky experimentálneho hodnotenia
+                \item Realizácia používateľského testovania a zber dát o presnosti, spoľahlivosti a použiteľnosti
+                \item  Analýza výsledkov testovania
+                \item  Vyhodnotenie a finalizácia dokumentu
+        \end{itemize}
+
+
+        \subsection{Plán  vyhodnotenia  výsledkov}  \label{sec:eval}  
+        \begin{itemize}
+                \item  Meranie  úspešnosti  dokončenia  úloh
+                \item  Meranie  času  potrebného  na  dokončenie  úloh
+                \item  Meranie presnosti rozpoznávania zámeru používateľa
+                \item  Meranie chybovosti
+                \item  Získanie  subjektívnych hodnotení  na  použiteľnosť  a  spokojnosť používateľov  (komfort,  náročnosť,  pocit  kontroly,  únava)
+        \end{itemize}
+
+        \subsection{Podporné  nástroje}\label{sec:tools}
+        \begin{itemize}
+                \item  Komunikácia  pomocou  Discord
+                \item  Príprava  dokumentu  pomocou  Overleaf
+                \item  Verziovanie  a  manažovanie  kódu  pomocou  Github
+                \item  Návrh  prototypov  a  implementácií  pomocou  Unity  a  C\#
+                \item  Sledovanie  pohľadu  v  prostredí  rozšírenej  reality
+                \item  Využitie  robotického  ramena  na  implementáciu
+        \end{itemize}
+
+
+        \subsection{Harmonogram}\label{sec:timeline}
+        %  MSc/Ing.  level  =  DP0  =  VISS
+        \begin{itemize}
+                \item  DP1  Analýza  a  návrhy  prototypov
+                \item  DP2  Implementácia  riešení
+                \item  DP3  Implementácia  riešení,  vyhodnotenia  a  testovania,  zhodnotenie
+        \end{itemize}
+
+
+\section{Záver}  \label{sec:conclusion}  
+Ovládanie  asistenčných  robotických  ramien  pomocou  sledovania  pohľadu  predstavuje  perspektívny  smer  v  oblasti  asistenčných  technológií,  keďže  umožňuje  interakciu  aj  používateľom  s  vážnymi  motorickými  obmedzeniami.  Analýza  existujúcich  riešení  ukazuje,  že  hoci  manuálne  telemanipulačné  systémy  poskytujú  úplnú  kontrolu,  sú  často  pomalé,  kognitívne  náročné  a  vyžadujú  veľké  množstvo  presných  fixácií.  Smerové  techniky  síce  znižujú  počet  interakcií,  no  poskytujú  iba  obmedzené  možnosti  jemného  riadenia.  Najväčší  potenciál  preto  majú  objektovo  orientované  poloautonómne  prístupy,  ktoré  kombinujú  sledovanie  pohľadu  s  pokročilými  metódami  počítačového  videnia  a  autonómneho  plánovania.
+Z  praktického  hľadiska  sa  ukazuje  ako  kľúčové  navrhnúť  riešenie,  ktoré  dokáže  spoľahlivo  interpretovať  zámer  používateľa  zo  sledovania  pohľadu  a  zároveň  minimalizuje  kognitívnu  záťaž  pri  vykonávaní  manipulácií.  Výsledky  analýzy  naznačujú,  že  najväčší  potenciál  má  poloautonómny  prístup,  ktorý  kombinuje  sledovanie  pohľadu  s  detekciou  objektov  a  autonómnym  plánovaním  trajektórií.  Takýto  systém  môže  výrazne  zlepšiť  rýchlosť,  presnosť  a  intuitívnosť  ovládania  robotického  ramena  oproti  manuálnym  metódam,  pretože  odstraňuje  nutnosť  zadávať  postupné  príkazy  a  preberá  časť  rozhodovania  aj  pohybového  riadenia.  
+
+\printbibliography
+\newpage
+\appendix
+\section{Zadanie}  \label{sec:zadanie}
+
+Vedúci  DP:	Ing.  Juraj  Vincúr,  PhD.    \\
+Diplomant:	Bc.  Viktória  Bukovská                          \\
+
+\textbf{Oblasť  problematiky:}    
+\begin{itemize}
+        \item  sledovanie  pohľadu  očí
+        \item  asistenčné  robotické  rameno
+        \item  obohatená  realita
+\end{itemize}
+
+\subsection{Poloautonómne  ovládanie  asistenčného  robotického  ramena  pomocou  sledovania  pohľadu}
+
+Asistenčné  robotické  technológie  významne  prispievajú  k  zvyšovaniu  autonómie  ľudí  s  vážnymi  motorickými  obmedzeniami,  no  tradičné  metódy  ovládania,  ako  sú  joysticky,  tlačidlá  či  hlasové  príkazy,  sú  v  mnohých  prípadoch  nepoužiteľné.  Sledovanie  pohľadu  predstavuje  perspektívnu  a  prirodzenú  formu  interakcie,  ktorá  umožňuje  využiť  poslednú  zachovanú  motorickú  schopnosť,  kontrolu  očí.  Napriek  tomu  majú  existujúce  systémy  založené  na  pohľade  obmedzenia  v  presnosti,  robustnosti  a  intuitívnosti.  Chýbajú  najmä  riešenia,  ktoré  dokážu  spoľahlivo  interpretovať  zámer  používateľa  a  poloautonómne  vykonať  úlohu,  napríklad  uchopenie  objektu,  bez  potreby  zdĺhavého  manuálneho  riadenia.
+
+Analyzujte  súčasné  prístupy  k  ovládaniu  asistenčných  robotických  ramien  pomocou  sledovania  pohľadu.  Na  základe  analýzy  navrhnite  a  implementujte  vlastný  poloautonómny  prístup,  ktorý  minimalizuje  množstvo  interakcie  potrebnej  na  jednoznačné  vyjadrenie  zámeru  používateľa  prostredníctvom  pohľadu  a  zároveň  zabezpečí  jeho  presné  vykonanie.  Vaše  riešenie  vyhodnoťte  v  kontexte  asistenčného  používania  a  porovnajte  s  existujúcimi  manuálnymi  a  poloautonómnymi  metódami  ovládania.  Porovnanie  realizujte  pomocou  objektívnych  metrík,  ako  sú  úspešnosť  dokončenia  úloh,  čas  vykonania,  presnosť  rozpoznania  zámeru  a  miera  chýb,  ako  aj  subjektívnych  hodnotení  používateľov.
+
+\textbf{Literatúra:  }
+\begin{itemize}
+        \item  Anke  Fischer-Janzen,  Thomas  M.  Wendt,  and  Kristof  Van  Laerhoven.
+“A  scoping  review  of  gaze  and  eye  tracking-based  control  methods
+for  assistive  robotic  arms”.  In:  Frontiers  in  Robotics  and  AI  11  (Feb.
+2024).  ISSN:  2296-9144.  DOI:  10  .  3389  /  frobt  .  2024  .  1326670.  URL:
+http://dx.doi.org/10.3389/frobt.2024.1326670
+        \item  Joung-Woo  Hyung  et  al.  “Robotic  arm  control  by  augmented  reality-
+assisted  object  detection”.  In:  Scientific  Reports  15.1  (Oct.  2025).  ISSN:
+2045-2322.  DOI:  10.1038/s41598-  025-  19514-  5.  URL:  http://dx.
+doi.org/10.1038/s41598-025-19514-5.
+        \item  Yann-Seing  Law-Kam  Cio  et  al.  “Proof  of  Concept  of  an  Assistive
+Robotic  Arm  Control  Using  Artificial  Stereovision  and  Eye-Tracking”.
+In:  IEEE  Transactions  on  Neural  Systems  and  Rehabilitation  Engineering
+27.12  (2019),  pp.  2344–2352.  DOI:  10.1109/TNSRE.2019.2950619.  URL:
+http://dx.doi.org/10.1109/TNSRE.2019.2950619.
+\end{itemize}
+
+\end{document}
