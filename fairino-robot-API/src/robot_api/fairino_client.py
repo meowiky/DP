@@ -58,6 +58,18 @@ class ToolState:
     message: str | None = None
 
 
+@dataclass
+class InverseKinResult:
+    error_code: int
+    joint_pos: list[float] | None
+
+
+@dataclass
+class InverseKinHasSolutionResult:
+    error_code: int
+    has_solution: bool
+
+
 class FairinoClient:
     def __init__(self, robot_ip: str) -> None:
         self.robot_ip = robot_ip
@@ -203,6 +215,40 @@ class FairinoClient:
             tool_0_coord=[float(value) for value in tool_0_coord] if tool_0_coord is not None else None,
             tool_1_coord=[float(value) for value in tool_1_coord] if tool_1_coord is not None else None,
             message=message,
+        )
+
+    def get_inverse_kin_ref(
+        self,
+        type: int,
+        desc_pos: list[float],
+        joint_pos_ref: list[float],
+    ) -> InverseKinResult:
+        if self._robot is None:
+            raise RuntimeError("Robot is not connected.")
+
+        error_code, joint_pos = self._unpack_sdk_state(
+            self._robot.GetInverseKinRef(type, desc_pos, joint_pos_ref)
+        )
+        return InverseKinResult(
+            error_code=error_code,
+            joint_pos=[float(value) for value in joint_pos] if joint_pos is not None else None,
+        )
+
+    def get_inverse_kin_has_solution(
+        self,
+        type: int,
+        desc_pos: list[float],
+        joint_pos_ref: list[float],
+    ) -> InverseKinHasSolutionResult:
+        if self._robot is None:
+            raise RuntimeError("Robot is not connected.")
+
+        error_code, has_solution = self._unpack_sdk_state(
+            self._robot.GetInverseKinHasSolution(type, desc_pos, joint_pos_ref)
+        )
+        return InverseKinHasSolutionResult(
+            error_code=error_code,
+            has_solution=bool(has_solution) if has_solution is not None else False,
         )
 
     def move_cartesian(

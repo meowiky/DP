@@ -38,6 +38,25 @@ class PartialCartesianMoveRequest(BaseModel):
         return value
 
 
+class InverseKinRequest(BaseModel):
+    x: float = Field(..., description="Target X in mm")
+    y: float = Field(..., description="Target Y in mm")
+    z: float = Field(..., description="Target Z in mm")
+    rx: float = Field(..., description="Target RX in degrees")
+    ry: float = Field(..., description="Target RY in degrees")
+    rz: float = Field(..., description="Target RZ in degrees")
+    type: int = Field(0, ge=0, le=2, description="0=absolute/base, 1=relative/base, 2=relative/tool")
+    joint_pos_ref: list[float] | None = Field(
+        None,
+        min_length=6,
+        max_length=6,
+        description="Reference joint position [j1, j2, j3, j4, j5, j6] in degrees. If omitted, the current robot joint state is used.",
+    )
+
+    def to_desc_pos(self) -> list[float]:
+        return [self.x, self.y, self.z, self.rx, self.ry, self.rz]
+
+
 class MoveResponse(BaseModel):
     success: bool
     dry_run: bool
@@ -78,4 +97,24 @@ class ToolStateResponse(BaseModel):
     current_tool_coord: list[float] | None = None
     tool_0_coord: list[float] | None = None
     tool_1_coord: list[float] | None = None
+    message: str | None = None
+
+
+class InverseKinHasSolutionResponse(BaseModel):
+    robot_ip: str
+    type: int
+    desc_pos: list[float]
+    joint_pos_ref: list[float]
+    has_solution: bool
+    error_code: int
+    message: str | None = None
+
+
+class InverseKinRefResponse(BaseModel):
+    robot_ip: str
+    type: int
+    desc_pos: list[float]
+    joint_pos_ref: list[float]
+    error_code: int
+    joint_pos: list[float] | None = None
     message: str | None = None

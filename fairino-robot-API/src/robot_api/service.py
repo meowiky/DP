@@ -2,11 +2,26 @@ from robot_api.config import settings
 from robot_api.fairino_client import FairinoClient
 from robot_api.models import (
     CartesianMoveRequest,
+    InverseKinHasSolutionResponse,
+    InverseKinRefResponse,
+    InverseKinRequest,
     MoveResponse,
     PartialCartesianMoveRequest,
     RobotStateResponse,
     ToolStateResponse,
 )
+
+
+def _resolve_joint_pos_ref(client: FairinoClient, joint_pos_ref: list[float] | None) -> list[float]:
+    if joint_pos_ref is not None:
+        return joint_pos_ref
+
+    state = client.get_state()
+    if not state.realtime_available or not state.joint_pos:
+        raise RuntimeError(
+            "Realtime joint state is unavailable, so joint_pos_ref must be provided explicitly."
+        )
+    return state.joint_pos
 
 
 def move_cartesian(request: CartesianMoveRequest) -> MoveResponse:
@@ -146,4 +161,56 @@ def get_tool_state() -> ToolStateResponse:
         tool_0_coord=tool_state.tool_0_coord,
         tool_1_coord=tool_state.tool_1_coord,
         message=tool_state.message,
+    )
+
+
+def get_inverse_kin_ref(request: InverseKinRequest) -> InverseKinRefResponse:
+    desc_pos = request.to_desc_pos()
+
+    with FairinoClient(settings.fairino_robot_ip) as client:
+        joint_pos_ref = _resolve_joint_pos_ref(client, request.joint_pos_ref)
+        result = client.get_inverse_kin_ref(
+            type=request.type,
+            desc_pos=desc_pos,
+            joint_pos_ref=joint_pos_ref,
+        )
+
+    message = None
+    if result.error_code != 0:
+        message = "GetInverseKinRef returned a non-zero error code."
+
+    return InverseKinRefResponse(
+        robot_ip=settings.fairino_robot_ip,
+        type=request.type,
+        desc_pos=desc_pos,
+        joint_pos_ref=joint_pos_ref,
+        error_code=result.error_code,
+        joint_pos=result.joint_pos,
+        message=message,
+    )
+
+
+def get_inverse_kin_has_solution(request: InverseKinRequest) -> InverseKinHasSolutionResponse:
+    desc_pos = request.to_desc_pos()
+
+    with FairinoClient(settings.fairino_robot_ip) as client:
+        joint_pos_ref = _resolve_joint_pos_ref(client, request.joint_pos_ref)
+        result = client.get_inverse_kin_has_solution(
+            type=request.type,
+            desc_pos=desc_pos,
+            joint_pos_ref=joint_pos_ref,
+        )
+
+    message = None
+    if result.error_code != 0:
+        message = "GetInverseKinHasSolution returned a non-zero error code."
+
+    return InverseKinHasSolutionResponse(
+        robot_ip=settings.fairino_robot_ip,
+        type=request.type,
+        desc_pos=desc_pos,
+        joint_pos_ref=joint_pos_ref,
+        has_solution=result.has_solution,
+        error_code=result.error_code,
+        message=message,
     )
