@@ -3,10 +3,14 @@ from fastapi import FastAPI, HTTPException
 from robot_api.config import settings
 from robot_api.fairino_client import FairinoCommandError, FairinoSDKUnavailableError
 from robot_api.models import (
+    CartesianViaJointMoveRequest,
+    CartesianViaJointMoveResponse,
     CartesianMoveRequest,
     InverseKinHasSolutionResponse,
     InverseKinRefResponse,
     InverseKinRequest,
+    JointMoveRequest,
+    JointMoveResponse,
     MoveResponse,
     PartialCartesianMoveRequest,
     RobotStateResponse,
@@ -17,8 +21,10 @@ from robot_api.service import (
     get_inverse_kin_ref,
     get_robot_state,
     get_tool_state,
+    move_cartesian_via_joint,
     move_cartesian,
     move_cartesian_partial,
+    move_joint,
 )
 
 app = FastAPI(
@@ -53,6 +59,34 @@ def move_cartesian_endpoint(request: CartesianMoveRequest) -> MoveResponse:
 def move_cartesian_partial_endpoint(request: PartialCartesianMoveRequest) -> MoveResponse:
     try:
         return move_cartesian_partial(request)
+    except FairinoSDKUnavailableError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    except ConnectionError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except FairinoCommandError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/move/joint", response_model=JointMoveResponse)
+def move_joint_endpoint(request: JointMoveRequest) -> JointMoveResponse:
+    try:
+        return move_joint(request)
+    except FairinoSDKUnavailableError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    except ConnectionError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except FairinoCommandError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/move/cartesian-via-joint", response_model=CartesianViaJointMoveResponse)
+def move_cartesian_via_joint_endpoint(request: CartesianViaJointMoveRequest) -> CartesianViaJointMoveResponse:
+    try:
+        return move_cartesian_via_joint(request)
     except FairinoSDKUnavailableError as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
     except ConnectionError as exc:

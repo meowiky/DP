@@ -129,3 +129,5 @@ ik ref
   ],
   "message": null
 }
+
+cartesian via joint uz slo ale nabural do stolu takze som safe stopla

@@ -38,6 +38,21 @@ class PartialCartesianMoveRequest(BaseModel):
         return value
 
 
+class JointMoveRequest(BaseModel):
+    j1: float = Field(..., description="Target joint 1 in degrees")
+    j2: float = Field(..., description="Target joint 2 in degrees")
+    j3: float = Field(..., description="Target joint 3 in degrees")
+    j4: float = Field(..., description="Target joint 4 in degrees")
+    j5: float = Field(..., description="Target joint 5 in degrees")
+    j6: float = Field(..., description="Target joint 6 in degrees")
+    tool: int | None = Field(None, ge=0, le=14, description="Tool frame index")
+    user: int | None = Field(None, ge=0, le=14, description="Workpiece/user frame index")
+    vel: float | None = Field(None, gt=0, le=100, description="Speed percentage")
+
+    def to_joint_pos(self) -> list[float]:
+        return [self.j1, self.j2, self.j3, self.j4, self.j5, self.j6]
+
+
 class InverseKinRequest(BaseModel):
     x: float = Field(..., description="Target X in mm")
     y: float = Field(..., description="Target Y in mm")
@@ -57,6 +72,12 @@ class InverseKinRequest(BaseModel):
         return [self.x, self.y, self.z, self.rx, self.ry, self.rz]
 
 
+class CartesianViaJointMoveRequest(InverseKinRequest):
+    tool: int | None = Field(None, ge=0, le=14, description="Tool frame index")
+    user: int | None = Field(None, ge=0, le=14, description="Workpiece/user frame index")
+    vel: float | None = Field(None, gt=0, le=100, description="Speed percentage")
+
+
 class MoveResponse(BaseModel):
     success: bool
     dry_run: bool
@@ -67,6 +88,35 @@ class MoveResponse(BaseModel):
     user: int
     vel: float
     error_code: int | None = None
+    message: str
+
+
+class JointMoveResponse(BaseModel):
+    success: bool
+    dry_run: bool
+    robot_ip: str
+    command: str
+    joint_pos: list[float]
+    tool: int
+    user: int
+    vel: float
+    error_code: int | None = None
+    message: str
+
+
+class CartesianViaJointMoveResponse(BaseModel):
+    success: bool
+    dry_run: bool
+    robot_ip: str
+    command: str
+    desc_pos: list[float]
+    joint_pos_ref: list[float]
+    joint_pos: list[float]
+    tool: int
+    user: int
+    vel: float
+    ik_error_code: int
+    move_error_code: int | None = None
     message: str
 
 

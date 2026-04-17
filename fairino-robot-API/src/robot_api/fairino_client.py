@@ -29,6 +29,15 @@ class MoveResult:
 
 
 @dataclass
+class JointMoveResult:
+    error_code: int
+    joint_pos: list[float]
+    tool: int
+    user: int
+    vel: float
+
+
+@dataclass
 class RobotState:
     realtime_available: bool
     enabled: int
@@ -309,6 +318,69 @@ class FairinoClient:
         return MoveResult(
             error_code=error_code,
             desc_pos=desc_pos,
+            tool=tool,
+            user=user,
+            vel=vel,
+        )
+
+    def move_joint(
+        self,
+        joint_pos: list[float],
+        tool: int,
+        user: int,
+        vel: float,
+    ) -> JointMoveResult:
+        if self._robot is None:
+            raise RuntimeError("Robot is not connected.")
+
+        error_code = self._robot.MoveJ(
+            joint_pos=joint_pos,
+            tool=tool,
+            user=user,
+            vel=vel,
+        )
+        if error_code != 0:
+            context = self.get_state()
+            if not context.realtime_available:
+                raise FairinoCommandError(
+                    (
+                        f"MoveJ failed with error code {error_code}. "
+                        f"Realtime diagnostics are unavailable: {context.message}"
+                    ),
+                    error_code=error_code,
+                    context={"realtime_available": False, "message": context.message},
+                )
+            summary = (
+                f"MoveJ failed with error code {error_code}. "
+                f"Controller error=[{context.main_error_code}, {context.sub_error_code}], "
+                f"enabled={context.enabled}, mode={context.robot_mode}, "
+                f"state={context.robot_state}, estop={context.emergency_stop}, "
+                f"safety_stop={context.safety_stop}, collision={context.collision_state}."
+            )
+            raise FairinoCommandError(
+                summary,
+                error_code=error_code,
+                context={
+                    "enabled": context.enabled,
+                    "robot_mode": context.robot_mode,
+                    "program_state": context.program_state,
+                    "robot_state": context.robot_state,
+                    "emergency_stop": context.emergency_stop,
+                    "safety_stop": context.safety_stop,
+                    "collision_state": context.collision_state,
+                    "motion_done": context.motion_done,
+                    "tool": context.tool,
+                    "user": context.user,
+                    "main_error_code": context.main_error_code,
+                    "sub_error_code": context.sub_error_code,
+                    "tcp_pose": context.tcp_pose,
+                    "joint_pos": context.joint_pos,
+                },
+            )
+
+        return JointMoveResult(
+            error_code=error_code,
+            joint_pos=joint_pos,
             tool=tool,
             user=user,
             vel=vel,

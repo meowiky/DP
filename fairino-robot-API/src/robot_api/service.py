@@ -1,10 +1,14 @@
 from robot_api.config import settings
-from robot_api.fairino_client import FairinoClient
+from robot_api.fairino_client import FairinoClient, FairinoCommandError
 from robot_api.models import (
+    CartesianViaJointMoveRequest,
+    CartesianViaJointMoveResponse,
     CartesianMoveRequest,
     InverseKinHasSolutionResponse,
     InverseKinRefResponse,
     InverseKinRequest,
+    JointMoveRequest,
+    JointMoveResponse,
     MoveResponse,
     PartialCartesianMoveRequest,
     RobotStateResponse,
@@ -146,6 +150,126 @@ def move_cartesian_partial(request: PartialCartesianMoveRequest) -> MoveResponse
         vel=result.vel,
         error_code=result.error_code,
         message="Motion command accepted by robot controller.",
+    )
+
+
+def move_joint(request: JointMoveRequest) -> JointMoveResponse:
+    joint_pos = request.to_joint_pos()
+    tool = settings.fairino_tool if request.tool is None else request.tool
+    user = settings.fairino_user if request.user is None else request.user
+    vel = settings.fairino_default_vel if request.vel is None else request.vel
+
+    if settings.fairino_dry_run:
+        return JointMoveResponse(
+            success=True,
+            dry_run=True,
+            robot_ip=settings.fairino_robot_ip,
+            command="MoveJ",
+            joint_pos=joint_pos,
+            tool=tool,
+            user=user,
+            vel=vel,
+            message="Dry-run mode enabled. No motion command was sent.",
+        )
+
+    with FairinoClient(settings.fairino_robot_ip) as client:
+        result = client.move_joint(
+            joint_pos=joint_pos,
+            tool=tool,
+            user=user,
+            vel=vel,
+        )
+
+    return JointMoveResponse(
+        success=True,
+        dry_run=False,
+        robot_ip=settings.fairino_robot_ip,
+        command="MoveJ",
+        joint_pos=result.joint_pos,
+        tool=result.tool,
+        user=result.user,
+        vel=result.vel,
+        error_code=result.error_code,
+        message="Joint motion command accepted by robot controller.",
+    )
+
+
+def move_cartesian_via_joint(request: CartesianViaJointMoveRequest) -> CartesianViaJointMoveResponse:
+    desc_pos = request.to_desc_pos()
+    vel = settings.fairino_default_vel if request.vel is None else request.vel
+
+    with FairinoClient(settings.fairino_robot_ip) as client:
+        state = client.get_state()
+        if request.joint_pos_ref is not None:
+            joint_pos_ref = request.joint_pos_ref
+        elif state.realtime_available and state.joint_pos:
+            joint_pos_ref = state.joint_pos
+        else:
+            raise RuntimeError(
+                "Realtime joint state is unavailable, so joint_pos_ref must be provided explicitly."
+            )
+
+        tool = request.tool
+        if tool is None:
+            tool = state.tool if state.realtime_available and state.tool >= 0 else settings.fairino_tool
+
+        user = request.user
+        if user is None:
+            user = state.user if state.realtime_available and state.user >= 0 else settings.fairino_user
+
+        ik_result = client.get_inverse_kin_ref(
+            type=request.type,
+            desc_pos=desc_pos,
+            joint_pos_ref=joint_pos_ref,
+        )
+        if ik_result.error_code != 0 or ik_result.joint_pos is None:
+            raise FairinoCommandError(
+                f"GetInverseKinRef failed with error code {ik_result.error_code}.",
+                error_code=ik_result.error_code,
+                context={
+                    "desc_pos": desc_pos,
+                    "joint_pos_ref": joint_pos_ref,
+                    "type": request.type,
+                },
+            )
+
+        if settings.fairino_dry_run:
+            return CartesianViaJointMoveResponse(
+                success=True,
+                dry_run=True,
+                robot_ip=settings.fairino_robot_ip,
+                command="GetInverseKinRef -> MoveJ",
+                desc_pos=desc_pos,
+                joint_pos_ref=joint_pos_ref,
+                joint_pos=ik_result.joint_pos,
+                tool=tool,
+                user=user,
+                vel=vel,
+                ik_error_code=ik_result.error_code,
+                message="Dry-run mode enabled. IK was solved, but no motion command was sent.",
+            )
+
+        move_result = client.move_joint(
+            joint_pos=ik_result.joint_pos,
+            tool=tool,
+            user=user,
+            vel=vel,
+        )
+
+    return CartesianViaJointMoveResponse(
+        success=True,
+        dry_run=False,
+        robot_ip=settings.fairino_robot_ip,
+        command="GetInverseKinRef -> MoveJ",
+        desc_pos=desc_pos,
+        joint_pos_ref=joint_pos_ref,
+        joint_pos=move_result.joint_pos,
+        tool=move_result.tool,
+        user=move_result.user,
+        vel=move_result.vel,
+        ik_error_code=ik_result.error_code,
+        move_error_code=move_result.error_code,
+        message="IK solved and joint motion command accepted by robot controller.",
     )
 
 
